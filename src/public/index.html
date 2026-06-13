@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PrepWise - Smart Cooking To-Do Assistant</title>
+  <meta name="description" content="Generate a personalized cooking to-do list, meal plan, and grocery shopping checklist based on your schedule and budget using AI.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Outfit', 'Inter', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  
+  <!-- Custom CSS for custom scrolls and micro-animations -->
+  <style>
+    body {
+      font-family: 'Outfit', 'Inter', sans-serif;
+    }
+    .glass-card {
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glow-hover:hover {
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+    /* Custom checkmark animation */
+    .checkbox-custom:checked + label {
+      text-decoration: line-through;
+      color: rgba(156, 163, 175, 0.8);
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col">
+
+  <!-- Header -->
+  <header class="border-b border-slate-900 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <!-- Logo Icon -->
+        <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-slate-950 font-bold text-xl shadow-lg shadow-emerald-500/20">
+          🥗
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">PrepWise</h1>
+          <p class="text-xs text-emerald-400 font-medium tracking-wide uppercase">AI Cooking Assistant</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-4">
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          Gemini Powered
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 flex flex-col lg:flex-row gap-8 overflow-hidden">
+    
+    <!-- Left Panel: User Config Form -->
+    <section class="w-full lg:w-96 flex-shrink-0">
+      <div class="glass-card rounded-2xl p-6 shadow-xl sticky top-24">
+        <h2 class="text-lg font-bold text-white mb-1">Plan Your Day</h2>
+        <p class="text-sm text-slate-400 mb-6">Input your preferences, restrictions, and schedule, and we'll craft the perfect kitchen to-do checklist.</p>
+        
+        <form id="plan-form" class="space-y-5">
+          <!-- Input 1: Day Schedule (Busyness) -->
+          <div>
+            <label for="schedule-select" class="block text-sm font-semibold text-slate-200 mb-1.5">How busy is your day?</label>
+            <div class="relative">
+              <select id="schedule-select" name="schedule" required 
+                      class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all">
+                <option value="very relaxed with plenty of time to cook elaborate meals">Very Relaxed (Elaborate meals)</option>
+                <option value="moderately busy with 30-45 minutes to cook per meal" selected>Moderately Busy (30-45 mins/meal)</option>
+                <option value="extremely rushed, need quick 15-20 minute simple recipes">Extremely Rushed (15-20 mins/meal)</option>
+                <option value="custom">Custom schedule / details...</option>
+              </select>
+            </div>
+            <!-- Custom input visible only if 'Custom' option is chosen -->
+            <textarea id="custom-schedule" name="custom-schedule" rows="3" placeholder="Describe your day (e.g. Back-to-back meetings, only free after 6 PM, need zero-prep lunch...)"
+                      class="hidden mt-3 w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"></textarea>
+          </div>
+
+          <!-- Input 2: Budget -->
+          <div>
+            <label for="budget" class="block text-sm font-semibold text-slate-200 mb-1.5">What is your daily budget?</label>
+            <div class="relative rounded-xl shadow-sm">
+              <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <span class="text-slate-400 text-sm">$</span>
+              </div>
+              <input type="number" name="budget" id="budget" min="1" step="0.01" value="25.00" required
+                     class="w-full bg-slate-900 border border-slate-800 rounded-xl pl-8 pr-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" 
+                     placeholder="e.g. 25.00">
+            </div>
+            <p class="mt-1 text-xs text-slate-400">Total estimated grocery cost logic checks against this limit.</p>
+          </div>
+
+          <!-- Input 3: Dietary Restrictions -->
+          <div>
+            <label for="preferences" class="block text-sm font-semibold text-slate-200 mb-1.5">Dietary restrictions / preferences</label>
+            <input type="text" name="preferences" id="preferences" 
+                   class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" 
+                   placeholder="e.g. Gluten-free, Vegetarian, Keto, Nuts allergy, none">
+            
+            <!-- Quick Chips -->
+            <div class="flex flex-wrap gap-2 mt-3" aria-label="Quick preference presets">
+              <button type="button" class="chip-btn px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-300 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all" data-value="Vegan">Vegan</button>
+              <button type="button" class="chip-btn px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-300 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all" data-value="Gluten-Free">Gluten-Free</button>
+              <button type="button" class="chip-btn px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-300 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all" data-value="Keto">Keto</button>
+              <button type="button" class="chip-btn px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-300 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all" data-value="Vegetarian">Vegetarian</button>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" id="submit-btn"
+                  class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold py-3 px-4 rounded-xl shadow-lg shadow-emerald-500/10 hover:shadow-emerald-500/25 hover:from-emerald-400 hover:to-teal-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-slate-950 transition-all flex items-center justify-center space-x-2">
+            <span>Generate Cooking Plan</span>
+            <span>⚡</span>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Right Panel: Results Display -->
+    <section class="flex-grow flex flex-col min-w-0" aria-live="polite" id="results-section">
+      
+      <!-- Placeholder View (Initial State) -->
+      <div id="placeholder-view" class="flex-grow flex flex-col items-center justify-center text-center p-12 glass-card rounded-2xl">
+        <div class="h-20 w-20 bg-slate-900/50 border border-slate-800 rounded-2xl flex items-center justify-center text-4xl mb-6 shadow-inner">
+          🍳
+        </div>
+        <h3 class="text-xl font-bold text-white mb-2">No Plan Generated Yet</h3>
+        <p class="text-sm text-slate-400 max-w-md">Specify your day's schedule constraints, culinary budget, and dietary preferences on the left to synthesize an optimized list.</p>
+      </div>
+
+      <!-- Loading View -->
+      <div id="loading-view" class="hidden flex-grow flex flex-col items-center justify-center text-center p-12 glass-card rounded-2xl space-y-6">
+        <!-- Modern Spinner -->
+        <div class="relative">
+          <div class="w-16 h-16 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
+          <div class="absolute inset-0 flex items-center justify-center text-xl">💡</div>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-white mb-1">Synthesizing Meal Plan...</h3>
+          <p class="text-sm text-slate-400 max-w-xs mx-auto animate-pulse">Gemini is compiling custom recipes, validating costs, and mapping alternatives...</p>
+        </div>
+      </div>
+
+      <!-- Main Results Content -->
+      <div id="results-view" class="hidden flex flex-col gap-6 overflow-y-auto pr-1">
+        
+        <!-- Top Summary Cards (Grid) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Budget Feasibility Card -->
+          <div class="glass-card rounded-2xl p-6 glow-hover transition-all flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-white tracking-wide">Budget Feasibility Check</h3>
+                <span id="budget-badge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold"></span>
+              </div>
+              <div class="flex items-baseline space-x-2 mb-3">
+                <span class="text-3xl font-extrabold text-white" id="estimated-cost">$0.00</span>
+                <span class="text-xs text-slate-400">estimated cost</span>
+              </div>
+              <p class="text-sm text-slate-300 leading-relaxed" id="budget-explanation"></p>
+            </div>
+          </div>
+
+          <!-- Quick Stats / Preferences Card -->
+          <div class="glass-card rounded-2xl p-6 glow-hover transition-all flex flex-col justify-between">
+            <div>
+              <h3 class="font-bold text-white tracking-wide mb-4">Active Plan Specifications</h3>
+              <dl class="space-y-3">
+                <div class="flex justify-between text-sm">
+                  <dt class="text-slate-400 font-medium">Daily Schedule:</dt>
+                  <dd class="text-slate-200 text-right truncate max-w-[200px]" id="spec-schedule"></dd>
+                </div>
+                <div class="flex justify-between text-sm">
+                  <dt class="text-slate-400 font-medium">Allocated Budget Limit:</dt>
+                  <dd class="text-slate-200" id="spec-budget"></dd>
+                </div>
+                <div class="flex justify-between text-sm">
+                  <dt class="text-slate-400 font-medium">Preferences / Restrictions:</dt>
+                  <dd class="text-slate-200 text-right truncate max-w-[200px]" id="spec-preferences"></dd>
+                </div>
+              </dl>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-900/60 flex justify-between items-center text-xs text-slate-400">
+              <span>Optimized by Gemini-1.5-Flash</span>
+              <span>⚡ Just-in-Time</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Meal Plan Card -->
+        <div class="glass-card rounded-2xl p-6 glow-hover transition-all">
+          <h3 class="font-bold text-white tracking-wide mb-5 flex items-center">
+            <span class="mr-2 text-xl">🍽️</span> Daily Meal Plan
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Breakfast -->
+            <div class="bg-slate-950/50 border border-slate-900 rounded-xl p-4 flex flex-col">
+              <div class="flex items-center space-x-2 mb-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded">Breakfast</span>
+              </div>
+              <p class="text-sm text-slate-300 leading-relaxed whitespace-pre-line" id="meal-breakfast"></p>
+            </div>
+            <!-- Lunch -->
+            <div class="bg-slate-950/50 border border-slate-900 rounded-xl p-4 flex flex-col">
+              <div class="flex items-center space-x-2 mb-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded">Lunch</span>
+              </div>
+              <p class="text-sm text-slate-300 leading-relaxed whitespace-pre-line" id="meal-lunch"></p>
+            </div>
+            <!-- Dinner -->
+            <div class="bg-slate-950/50 border border-slate-900 rounded-xl p-4 flex flex-col">
+              <div class="flex items-center space-x-2 mb-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-indigo-400 bg-indigo-400/10 px-2 py-0.5 rounded">Dinner</span>
+              </div>
+              <p class="text-sm text-slate-300 leading-relaxed whitespace-pre-line" id="meal-dinner"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grocery Checklist & Substitutions (Grid) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <!-- Grocery Checklist -->
+          <div class="glass-card rounded-2xl p-6 glow-hover transition-all flex flex-col">
+            <h3 class="font-bold text-white tracking-wide mb-4 flex items-center justify-between">
+              <span class="flex items-center"><span class="mr-2 text-xl">🛒</span> Shopping Checklist</span>
+              <span class="text-xs text-slate-400 font-normal" id="grocery-count">0 items</span>
+            </h3>
+            
+            <div class="flex-grow overflow-y-auto max-h-80 pr-1">
+              <ul class="space-y-2.5" id="grocery-list-container">
+                <!-- Checkboxes will render here dynamically -->
+              </ul>
+            </div>
+          </div>
+
+          <!-- Substitutions -->
+          <div class="glass-card rounded-2xl p-6 glow-hover transition-all flex flex-col">
+            <h3 class="font-bold text-white tracking-wide mb-4 flex items-center">
+              <span class="mr-2 text-xl">🔄</span> Smart Substitutions
+            </h3>
+            <div class="flex-grow overflow-y-auto max-h-80 pr-1">
+              <div class="space-y-3" id="substitutions-container">
+                <!-- Substitutions cards render here dynamically -->
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-900 bg-slate-950/50 py-4 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4">
+      <p>&copy; 2026 PrepWise. Built with Google Generative AI for PromptWars.</p>
+    </div>
+  </footer>
+
+  <!-- Link App Controller JS -->
+  <script src="/app.js"></script>
+</body>
+</html>
